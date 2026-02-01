@@ -23,6 +23,9 @@ struct ContentView: View {
                     
                     // TODO: Show remaining budget here
                     // Note: Budget can change color in certain cases
+                    Text("Remaining: $\(String(format: "%.2f", viewModel.remainingBudget))")
+                        .font(.title2)
+                        .foregroundColor(viewModel.budgetColor)
                     
                     
                 }
@@ -34,13 +37,22 @@ struct ContentView: View {
                 VStack(spacing: 15) {
                     
                     // TODO: TextField for expense name
-                                        
+                    TextField("Expense name", text: $expenseName)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
                     
                     // TODO: TextField for expense amount
+                    TextField("Amount", text: $expenseAmount)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .keyboardType(.decimalPad)
                     
                     
                     Button {
                         // TODO: Add expense and remember to clear the fields
+                        if let amount = Double(expenseAmount) {
+                            viewModel.addExpense(name: expenseName, amount: amount)
+                            expenseName = ""
+                            expenseAmount = ""
+                        }
                     } label: {
                         Text("Add Expense")
                             .frame(maxWidth: .infinity, maxHeight: 50)
@@ -62,15 +74,38 @@ struct ContentView: View {
                         .font(.headline)
                     
                     // TODO: If there are no expenses, show "No expenses yet"
-                                                            
-                    ForEach($viewModel.expenses) { $expense in
-                        // TODO: Wrap each expense in a NavigationLink
-                        // Destination should be ExpenseDetailView(expense: $expense, viewModel: viewModel)
-                        
-                        // Inside the row, display:
-                        // - Expense name
-                        // - Expense amount
-                        // - A delete button
+                    if viewModel.expenses.isEmpty {
+                        Text("No expenses yet")
+                            .foregroundColor(.gray)
+                            .padding()
+                    } else {
+                        ForEach($viewModel.expenses) { $expense in
+                            // TODO: Wrap each expense in a NavigationLink
+                            // Destination should be ExpenseDetailView(expense: $expense, viewModel: viewModel)
+                            HStack {
+                                NavigationLink {
+                                    ExpenseDetailView(expense: $expense, viewModel: viewModel)
+                                } label: {
+                                    HStack {
+                                        Text(expense.name)
+                                        Spacer()
+                                        Text("$\(String(format: "%.2f", expense.amount))")
+                                    }
+                                }
+                                
+                                // Inside the row, display:
+                                // - Expense name
+                                // - Expense amount
+                                // - A delete button
+                                Button {
+                                    viewModel.removeExpense(expense: expense)
+                                } label: {
+                                    Text("Delete")
+                                        .foregroundColor(.red)
+                                }
+                            }
+                            .padding(.vertical, 5)
+                        }
                     }
                 }
                 .padding()
